@@ -11,14 +11,14 @@ function isAdmin() {
 
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+        header('Location: ' . BASE_PATH . '/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
         exit;
     }
 }
 
 function requireAdmin() {
     if (!isAdmin()) {
-        header('Location: /index.php');
+        header('Location: ' . BASE_PATH . '/index.php');
         exit;
     }
 }
@@ -28,7 +28,8 @@ function sanitize($data) {
 }
 
 function formatPrice($price) {
-    return 'R$ ' . number_format($price, 2, ',', '.');
+    // Japanese Yen - sem decimais
+    return '¥' . number_format($price, 0, '', ',');
 }
 
 function generateSlug($text) {
@@ -223,6 +224,10 @@ function logError($message) {
 }
 
 function redirect($url) {
+    // Se a URL começa com /, adiciona BASE_PATH
+    if (strpos($url, '/') === 0 && strpos($url, BASE_PATH) !== 0) {
+        $url = BASE_PATH . $url;
+    }
     header("Location: $url");
     exit;
 }
@@ -241,4 +246,3 @@ function getFlashMessage() {
     }
     return null;
 }
-?>

@@ -72,7 +72,7 @@ include 'includes/header.php';
     <div style="text-align: center; margin-top: 20px;">
         <p style="color: #666;">
             Não tem uma conta? 
-            <a href="/register.php" style="color: var(--primary-green); font-weight: 600;">
+            <a href="register.php" style="color: var(--primary-green); font-weight: 600;">
                 Cadastre-se aqui
             </a>
         </p>

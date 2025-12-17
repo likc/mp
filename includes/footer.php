@@ -25,11 +25,11 @@
                     <div class="footer-col">
                         <h4 class="footer-heading">Categorias</h4>
                         <ul class="footer-links">
-                            <li><a href="/products.php?category=camisas">Camisas de Time</a></li>
-                            <li><a href="/products.php?category=shorts">Shorts</a></li>
-                            <li><a href="/products.php?category=conjuntos-infantis">Conjuntos Infantis</a></li>
-                            <li><a href="/products.php?category=agasalhos">Agasalhos</a></li>
-                            <li><a href="/products.php?category=acessorios">Acessórios</a></li>
+                            <li><a href="products.php?category=camisas">Camisas de Time</a></li>
+                            <li><a href="products.php?category=shorts">Shorts</a></li>
+                            <li><a href="products.php?category=conjuntos-infantis">Conjuntos Infantis</a></li>
+                            <li><a href="products.php?category=agasalhos">Agasalhos</a></li>
+                            <li><a href="products.php?category=acessorios">Acessórios</a></li>
                         </ul>
                     </div>
                     
@@ -73,6 +73,6 @@
         </div>
     </footer>
 
-    <script src="https://likc.net/mantospremium/assets/js/main.js"></script>
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

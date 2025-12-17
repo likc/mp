@@ -94,10 +94,10 @@ include 'includes/header.php';
             
             <!-- Botões -->
             <div style="display: flex; gap: 15px; justify-content: center;">
-                <a href="/admin/orders.php" class="btn btn-primary">
+                <a href="admin/orders.php" class="btn btn-primary">
                     Ver Meus Pedidos
                 </a>
-                <a href="/products.php" class="btn btn-secondary">
+                <a href="products.php" class="btn btn-secondary">
                     Continuar Comprando
                 </a>
             </div>

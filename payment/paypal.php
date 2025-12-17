@@ -90,7 +90,7 @@ include '../includes/header.php';
             
             <!-- Link para voltar -->
             <div style="text-align: center; margin-top: 30px;">
-                <a href="/checkout.php" style="color: var(--text-light); text-decoration: none;">
+                <a href="checkout.php" style="color: var(--text-light); text-decoration: none;">
                     ← Escolher outra forma de pagamento
                 </a>
             </div>

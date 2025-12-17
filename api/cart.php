@@ -1,258 +1,279 @@
 <?php
-require_once 'config/config.php';
-require_once 'includes/functions.php';
-
-$pageTitle = 'Carrinho';
-
-// Processar ações do carrinho
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['remove'])) {
-        $key = $_POST['key'];
-        removeFromCart($key);
-        setFlashMessage('Produto removido do carrinho', 'success');
-        redirect('/cart.php');
-    }
-    
-    if (isset($_POST['update'])) {
-        foreach ($_POST['quantity'] as $key => $qty) {
-            updateCartQuantity($key, intval($qty));
-        }
-        setFlashMessage('Carrinho atualizado', 'success');
-        redirect('/cart.php');
-    }
-    
-    if (isset($_POST['apply_coupon'])) {
-        $code = strtoupper(trim($_POST['coupon_code']));
-        $coupon = applyCoupon($code);
-        
-        if ($coupon) {
-            setFlashMessage('Cupom aplicado com sucesso!', 'success');
-        } else {
-            setFlashMessage('Cupom inválido ou expirado', 'error');
-        }
-        redirect('/cart.php');
-    }
-    
-    if (isset($_POST['remove_coupon'])) {
-        unset($_SESSION['coupon']);
-        setFlashMessage('Cupom removido', 'info');
-        redirect('/cart.php');
-    }
+// Iniciar sessão SEMPRE primeiro
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-// Buscar produtos do carrinho
-$cartItems = [];
-$subtotal = 0;
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/functions.php';
 
-if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-    foreach ($_SESSION['cart'] as $key => $item) {
-        $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
-        $stmt->execute([$item['product_id']]);
-        $product = $stmt->fetch();
-        
-        if ($product) {
-            $cartItems[$key] = [
-                'key' => $key,
-                'product' => $product,
-                'size' => $item['size'],
-                'quantity' => $item['quantity'],
-                'subtotal' => $product['price'] * $item['quantity']
-            ];
-            $subtotal += $product['price'] * $item['quantity'];
+header('Content-Type: application/json');
+
+// Função para obter dados de múltiplas fontes
+function getRequestData() {
+    $data = [];
+    
+    // 1. Tentar POST normal
+    if (!empty($_POST)) {
+        $data = array_merge($data, $_POST);
+    }
+    
+    // 2. Tentar GET
+    if (!empty($_GET)) {
+        $data = array_merge($data, $_GET);
+    }
+    
+    // 3. Tentar JSON
+    $json = file_get_contents('php://input');
+    if (!empty($json)) {
+        $jsonData = json_decode($json, true);
+        if (is_array($jsonData)) {
+            $data = array_merge($data, $jsonData);
         }
     }
+    
+    return $data;
 }
 
-// Calcular valores
-$discount = calculateDiscount($subtotal);
-$itemCount = getCartItemCount();
-$shipping = calculateShipping($subtotal - $discount, $itemCount);
-$total = $subtotal - $discount + $shipping;
+// Obter dados da requisição
+$requestData = getRequestData();
 
-include 'includes/header.php';
-?>
+// Debug completo
+error_log('=== CART API DEBUG ===');
+error_log('POST: ' . print_r($_POST, true));
+error_log('GET: ' . print_r($_GET, true));
+error_log('JSON input: ' . file_get_contents('php://input'));
+error_log('Request Data: ' . print_r($requestData, true));
 
-<section class="section">
-    <div class="container">
-        <h1 class="section-title">🛒 Meu Carrinho</h1>
-        
-        <?php if (empty($cartItems)): ?>
-            <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <p style="font-size: 64px; margin-bottom: 20px;">🛒</p>
-                <h2 style="font-size: 28px; margin-bottom: 15px;">Seu carrinho está vazio</h2>
-                <p style="color: #666; margin-bottom: 30px;">Adicione produtos e comece a comprar!</p>
-                <a href="/products.php" class="btn btn-primary">Ver Produtos</a>
-            </div>
-        <?php else: ?>
-            <div class="cart-container">
-                <!-- Itens do Carrinho -->
-                <div class="cart-items">
-                    <h2 style="margin-bottom: 30px;">Produtos</h2>
-                    
-                    <form method="POST" action="">
-                        <?php foreach ($cartItems as $item): ?>
-                            <div class="cart-item">
-                                <img src="/<?php echo $item['product']['image'] ?: 'assets/images/placeholder.jpg'; ?>" 
-                                     alt="<?php echo htmlspecialchars($item['product']['name']); ?>"
-                                     class="cart-item-image">
-                                
-                                <div class="cart-item-info">
-                                    <h3><?php echo htmlspecialchars($item['product']['name']); ?></h3>
-                                    <div class="cart-item-details">
-                                        Time: <?php echo htmlspecialchars($item['product']['team']); ?><br>
-                                        Tamanho: <?php echo htmlspecialchars($item['size']); ?><br>
-                                        Preço unitário: <?php echo formatPrice($item['product']['price']); ?>
-                                    </div>
-                                </div>
-                                
-                                <div class="cart-item-actions">
-                                    <div class="quantity-selector">
-                                        <button type="button" class="qty-btn qty-minus" 
-                                                onclick="updateQuantity('<?php echo $item['key']; ?>', <?php echo $item['quantity'] - 1; ?>)">−</button>
-                                        <input type="number" name="quantity[<?php echo $item['key']; ?>]" 
-                                               value="<?php echo $item['quantity']; ?>" 
-                                               min="1" max="<?php echo $item['product']['stock']; ?>"
-                                               class="quantity-input" 
-                                               data-key="<?php echo $item['key']; ?>"
-                                               readonly>
-                                        <button type="button" class="qty-btn qty-plus"
-                                                onclick="updateQuantity('<?php echo $item['key']; ?>', <?php echo $item['quantity'] + 1; ?>)">+</button>
-                                    </div>
-                                    
-                                    <div style="font-size: 24px; font-weight: 900; color: var(--primary-green);">
-                                        <?php echo formatPrice($item['subtotal']); ?>
-                                    </div>
-                                    
-                                    <form method="POST" action="" style="margin: 0;">
-                                        <input type="hidden" name="key" value="<?php echo $item['key']; ?>">
-                                        <button type="submit" name="remove" 
-                                                onclick="return confirm('Remover este produto?')"
-                                                style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 14px;">
-                                            🗑️ Remover
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </form>
-                </div>
+// Inicializar carrinho se não existir
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
+// Pegar action
+$action = $requestData['action'] ?? '';
+
+$response = [
+    'success' => false,
+    'message' => '',
+    'debug' => [
+        'action' => $action,
+        'post_keys' => array_keys($_POST),
+        'get_keys' => array_keys($_GET),
+        'request_keys' => array_keys($requestData),
+        'session_id' => session_id()
+    ]
+];
+
+try {
+    if (empty($action)) {
+        throw new Exception('Nenhuma ação especificada. POST keys: ' . implode(', ', array_keys($_POST)) . ' GET keys: ' . implode(', ', array_keys($_GET)));
+    }
+    
+    switch ($action) {
+        case 'add':
+            $productId = intval($requestData['product_id'] ?? 0);
+            $variantId = intval($requestData['variant_id'] ?? 0);
+            $quantity = intval($requestData['quantity'] ?? 1);
+            $customizationName = isset($requestData['customization_name']) ? sanitize($requestData['customization_name']) : '';
+            $customizationNumber = isset($requestData['customization_number']) ? sanitize($requestData['customization_number']) : '';
+            
+            if ($productId <= 0 || $variantId <= 0) {
+                throw new Exception('Produto ou tamanho inválido (product_id: ' . $productId . ', variant_id: ' . $variantId . ')');
+            }
+            
+            if ($quantity < 1) {
+                throw new Exception('Quantidade inválida');
+            }
+            
+            // Buscar produto e variação
+            $stmt = $pdo->prepare("
+                SELECT 
+                    p.id,
+                    p.name,
+                    p.price,
+                    p.image,
+                    p.team,
+                    p.allow_customization,
+                    p.customization_price,
+                    s.code as size_code,
+                    s.name as size_name,
+                    pv.id as variant_id,
+                    pv.stock
+                FROM products p
+                JOIN product_variants pv ON pv.product_id = p.id
+                JOIN sizes s ON s.id = pv.size_id
+                WHERE p.id = ? AND pv.id = ? AND p.active = 1
+            ");
+            $stmt->execute([$productId, $variantId]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$product) {
+                throw new Exception('Produto não encontrado ou inativo');
+            }
+            
+            // Verificar se tem customização
+            $hasCustomization = !empty($customizationName) || !empty($customizationNumber);
+            $customPrice = 0;
+            
+            if ($hasCustomization && $product['allow_customization']) {
+                $customPrice = floatval($product['customization_price']);
+            }
+            
+            // Criar chave única para o item no carrinho
+            $cartKey = $productId . '_' . $variantId;
+            if ($hasCustomization) {
+                $cartKey .= '_' . md5($customizationName . $customizationNumber);
+            }
+            
+            // Adicionar ou atualizar item
+            if (isset($_SESSION['cart'][$cartKey])) {
+                // Item já existe, aumentar quantidade
+                $_SESSION['cart'][$cartKey]['quantity'] += $quantity;
+            } else {
+                // Novo item
+                $_SESSION['cart'][$cartKey] = [
+                    'product_id' => $productId,
+                    'variant_id' => $variantId,
+                    'name' => $product['name'],
+                    'price' => floatval($product['price']),
+                    'image' => $product['image'],
+                    'size_code' => $product['size_code'],
+                    'size_name' => $product['size_name'],
+                    'quantity' => $quantity,
+                    'team' => $product['team'],
+                    'customization_name' => $customizationName,
+                    'customization_number' => $customizationNumber,
+                    'customization_price' => $customPrice
+                ];
+            }
+            
+            // Calcular total de itens
+            $cartCount = 0;
+            foreach ($_SESSION['cart'] as $item) {
+                $cartCount += $item['quantity'];
+            }
+            
+            $response['success'] = true;
+            $response['message'] = 'Produto adicionado ao carrinho!';
+            $response['cart_count'] = $cartCount;
+            $response['cart_key'] = $cartKey;
+            unset($response['debug']); // Remove debug em caso de sucesso
+            break;
+            
+        case 'update':
+            $cartKey = $requestData['cart_key'] ?? '';
+            $quantity = intval($requestData['quantity'] ?? 0);
+            
+            if (empty($cartKey)) {
+                throw new Exception('Item inválido');
+            }
+            
+            if (!isset($_SESSION['cart'][$cartKey])) {
+                throw new Exception('Item não encontrado no carrinho');
+            }
+            
+            if ($quantity <= 0) {
+                // Remover item
+                unset($_SESSION['cart'][$cartKey]);
+                $response['message'] = 'Item removido do carrinho';
+            } else {
+                // Atualizar quantidade
+                $_SESSION['cart'][$cartKey]['quantity'] = $quantity;
+                $response['message'] = 'Quantidade atualizada!';
+            }
+            
+            // Calcular total de itens
+            $cartCount = 0;
+            foreach ($_SESSION['cart'] as $item) {
+                $cartCount += $item['quantity'];
+            }
+            
+            $response['success'] = true;
+            $response['cart_count'] = $cartCount;
+            unset($response['debug']);
+            break;
+            
+        case 'remove':
+            $cartKey = $requestData['cart_key'] ?? '';
+            
+            if (empty($cartKey)) {
+                throw new Exception('Item inválido');
+            }
+            
+            if (isset($_SESSION['cart'][$cartKey])) {
+                unset($_SESSION['cart'][$cartKey]);
                 
-                <!-- Resumo do Pedido -->
-                <div class="cart-summary">
-                    <h2 style="margin-bottom: 30px;">Resumo do Pedido</h2>
-                    
-                    <!-- Cupom de Desconto -->
-                    <div style="margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 10px;">
-                        <?php if (isset($_SESSION['coupon'])): ?>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>Cupom Aplicado:</strong><br>
-                                    <span style="color: var(--primary-green); font-weight: 600;">
-                                        <?php echo $_SESSION['coupon']['code']; ?>
-                                    </span>
-                                </div>
-                                <form method="POST" action="" style="margin: 0;">
-                                    <button type="submit" name="remove_coupon" class="btn-icon" title="Remover cupom">
-                                        ❌
-                                    </button>
-                                </form>
-                            </div>
-                        <?php else: ?>
-                            <form method="POST" action="" id="couponForm">
-                                <label style="font-weight: 600; margin-bottom: 10px; display: block;">
-                                    Cupom de Desconto
-                                </label>
-                                <div style="display: flex; gap: 10px;">
-                                    <input type="text" name="coupon_code" id="couponCode" 
-                                           placeholder="Digite o cupom"
-                                           style="flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 5px;">
-                                    <button type="submit" name="apply_coupon" class="btn btn-primary btn-small">
-                                        Aplicar
-                                    </button>
-                                </div>
-                            </form>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <!-- Valores -->
-                    <div class="summary-row">
-                        <span>Subtotal:</span>
-                        <strong><?php echo formatPrice($subtotal); ?></strong>
-                    </div>
-                    
-                    <?php if ($discount > 0): ?>
-                        <div class="summary-row" style="color: var(--primary-green);">
-                            <span>Desconto:</span>
-                            <strong>-<?php echo formatPrice($discount); ?></strong>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <div class="summary-row">
-                        <span>Frete:</span>
-                        <strong>
-                            <?php if ($shipping == 0): ?>
-                                <span style="color: var(--primary-green);">GRÁTIS 🎉</span>
-                            <?php else: ?>
-                                <?php echo formatPrice($shipping); ?>
-                            <?php endif; ?>
-                        </strong>
-                    </div>
-                    
-                    <div class="summary-row summary-total">
-                        <span>Total:</span>
-                        <strong><?php echo formatPrice($total); ?></strong>
-                    </div>
-                    
-                    <!-- Informações sobre Frete Grátis -->
-                    <?php
-                    $stmt = $pdo->query("SELECT * FROM shipping_config LIMIT 1");
-                    $shippingConfig = $stmt->fetch();
-                    
-                    if ($shipping > 0 && $shippingConfig): ?>
-                        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 14px;">
-                            <?php
-                            $remaining = $shippingConfig['free_shipping_min_value'] - ($subtotal - $discount);
-                            if ($remaining > 0): ?>
-                                💡 Faltam apenas <strong><?php echo formatPrice($remaining); ?></strong> 
-                                para ganhar frete grátis!
-                            <?php elseif ($shippingConfig['free_shipping_min_quantity'] - $itemCount > 0): ?>
-                                💡 Adicione mais 
-                                <strong><?php echo $shippingConfig['free_shipping_min_quantity'] - $itemCount; ?></strong> 
-                                produto(s) para ganhar frete grátis!
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <!-- Botão Finalizar Compra -->
-                    <a href="/checkout.php" class="btn btn-primary" style="width: 100%; margin-top: 30px; text-align: center;">
-                        Finalizar Compra
-                    </a>
-                    
-                    <a href="/products.php" style="display: block; text-align: center; margin-top: 15px; color: var(--text-light); text-decoration: none;">
-                        ← Continuar Comprando
-                    </a>
-                </div>
-            </div>
-        <?php endif; ?>
-    </div>
-</section>
-
-<script>
-function updateQuantity(key, quantity) {
-    if (quantity < 1) return;
+                // Calcular total de itens
+                $cartCount = 0;
+                foreach ($_SESSION['cart'] as $item) {
+                    $cartCount += $item['quantity'];
+                }
+                
+                $response['success'] = true;
+                $response['message'] = 'Item removido do carrinho';
+                $response['cart_count'] = $cartCount;
+                unset($response['debug']);
+            } else {
+                throw new Exception('Item não encontrado');
+            }
+            break;
+            
+        case 'get':
+            $cartItems = [];
+            $subtotal = 0;
+            
+            foreach ($_SESSION['cart'] as $key => $item) {
+                $itemTotal = ($item['price'] + $item['customization_price']) * $item['quantity'];
+                $subtotal += $itemTotal;
+                
+                $cartItems[] = array_merge($item, [
+                    'cart_key' => $key,
+                    'item_total' => $itemTotal,
+                    'formatted_price' => formatPrice($item['price']),
+                    'formatted_customization_price' => formatPrice($item['customization_price']),
+                    'formatted_item_total' => formatPrice($itemTotal)
+                ]);
+            }
+            
+            $response['success'] = true;
+            $response['items'] = $cartItems;
+            $response['subtotal'] = $subtotal;
+            $response['formatted_subtotal'] = formatPrice($subtotal);
+            $response['cart_count'] = array_sum(array_column($_SESSION['cart'], 'quantity'));
+            unset($response['debug']);
+            break;
+            
+        case 'clear':
+            $_SESSION['cart'] = [];
+            $response['success'] = true;
+            $response['message'] = 'Carrinho limpo!';
+            $response['cart_count'] = 0;
+            unset($response['debug']);
+            break;
+            
+        case 'count':
+            $cartCount = 0;
+            foreach ($_SESSION['cart'] as $item) {
+                $cartCount += $item['quantity'];
+            }
+            $response['success'] = true;
+            $response['cart_count'] = $cartCount;
+            unset($response['debug']);
+            break;
+            
+        default:
+            throw new Exception('Ação inválida: ' . $action);
+    }
     
-    fetch('/api/cart.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', key: key, quantity: quantity })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        }
-    });
+} catch (Exception $e) {
+    $response['success'] = false;
+    $response['message'] = $e->getMessage();
+    $response['error_trace'] = $e->getTraceAsString();
+    error_log('Erro no carrinho: ' . $e->getMessage());
 }
-</script>
 
-<?php include 'includes/footer.php'; ?>
+// Log da resposta para debug
+error_log('Response: ' . json_encode($response));
+
+echo json_encode($response, JSON_UNESCAPED_UNICODE);

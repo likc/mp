@@ -7,7 +7,7 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $pageTitle; ?> - Mantos Premium</title>
-    <link rel="stylesheet" href="https://likc.net/mantospremium/assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -42,13 +42,13 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
                     </div>
                     <div class="header-links">
                         <?php if (isLoggedIn()): ?>
-                            <a href="https://likc.net/mantospremium/admin/dashboard.php">
+                            <a href="admin/dashboard.php">
                                 <?php echo isAdmin() ? '⚙️ Admin' : '👤 Minha Conta'; ?>
                             </a>
-                            <a href="https://likc.net/mantospremium/logout.php">Sair</a>
+                            <a href="logout.php">Sair</a>
                         <?php else: ?>
-                            <a href="https://likc.net/mantospremium/login.php">Entrar</a>
-                            <a href="https://likc.net/mantospremium/register.php">Cadastrar</a>
+                            <a href="login.php">Entrar</a>
+                            <a href="register.php">Cadastrar</a>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -58,7 +58,7 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
         <div class="header-main">
             <div class="container">
                 <div class="header-content">
-                    <a href="https://likc.net/mantospremium/index.php" class="logo">
+                    <a href="index.php" class="logo">
                         <span class="logo-icon">🏆</span>
                         <span class="logo-text">
                             <span class="logo-mantos">MANTOS</span>
@@ -67,11 +67,11 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
                     </a>
                     
                     <nav class="main-nav">
-                        <a href="https://likc.net/mantospremium/index.php" class="nav-link">Início</a>
-                        <a href="https://likc.net/mantospremium/products.php" class="nav-link">Produtos</a>
-                        <a href="https://likc.net/mantospremium/products.php?category=camisas" class="nav-link">Camisas</a>
-                        <a href="https://likc.net/mantospremium/products.php?category=shorts" class="nav-link">Shorts</a>
-                        <a href="https://likc.net/mantospremium/products.php?category=conjuntos-infantis" class="nav-link">Infantil</a>
+                        <a href="index.php" class="nav-link">Início</a>
+                        <a href="products.php" class="nav-link">Produtos</a>
+                        <a href="products.php?category=camisas" class="nav-link">Camisas</a>
+                        <a href="products.php?category=shorts" class="nav-link">Shorts</a>
+                        <a href="products.php?category=conjuntos-infantis" class="nav-link">Infantil</a>
                     </nav>
                     
                     <div class="header-actions">
@@ -80,7 +80,7 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
                             <button type="button">🔍</button>
                         </div>
                         
-                        <a href="https://likc.net/mantospremium/cart.php" class="cart-button">
+                        <a href="cart.php" class="cart-button">
                             🛒
                             <span class="cart-count"><?php echo getCartItemCount(); ?></span>
                         </a>

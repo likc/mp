@@ -191,7 +191,7 @@ include 'includes/header.php';
                             <p style="color: #666; margin-bottom: 20px;">
                                 Você ainda não tem endereços cadastrados.
                             </p>
-                            <a href="/account/addresses.php" class="btn btn-primary btn-small">
+                            <a href="account/addresses.php" class="btn btn-primary btn-small">
                                 Adicionar Endereço
                             </a>
                         <?php else: ?>
@@ -211,7 +211,7 @@ include 'includes/header.php';
                                 </label>
                             <?php endforeach; ?>
                             
-                            <a href="/account/addresses.php" style="color: var(--primary-green); font-size: 14px;">
+                            <a href="account/addresses.php" style="color: var(--primary-green); font-size: 14px;">
                                 + Adicionar novo endereço
                             </a>
                         <?php endif; ?>
@@ -351,7 +351,7 @@ include 'includes/header.php';
                             Finalizar Pedido
                         </button>
                         
-                        <a href="/cart.php" style="display: block; text-align: center; margin-top: 15px; color: var(--text-light); text-decoration: none;">
+                        <a href="cart.php" style="display: block; text-align: center; margin-top: 15px; color: var(--text-light); text-decoration: none;">
                             ← Voltar ao Carrinho
                         </a>
                     </div>

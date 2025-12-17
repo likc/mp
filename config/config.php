@@ -1,36 +1,51 @@
 <?php
-// Configurações do Banco de Dados
+// Configuração do Sistema - Mantos Premium
+
+// Iniciar sessão ANTES de qualquer configuração
+if (session_status() === PHP_SESSION_NONE) {
+    // Configurar sessão ANTES de session_start
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_only_cookies', 1);
+    ini_set('session.cookie_secure', 0); // Mude para 1 se usar HTTPS
+    
+    session_start();
+}
+
+// Timezone - Japão (Tokyo)
+date_default_timezone_set('Asia/Tokyo');
+
+// Base Path - Subdiretório
+define('BASE_PATH', '');
+
+// Configuração do Banco de Dados
 define('DB_HOST', 'localhost');
+define('DB_NAME', 'minec761_mantospremium');
 define('DB_USER', 'minec761_mantospremium');
 define('DB_PASS', 'bvncm203o490');
-define('DB_NAME', 'minec761_mantospremium');
 
-// Configurações de Sessão
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', 0); // Mude para 1 se usar HTTPS
-session_start();
+// Charset
+define('DB_CHARSET', 'utf8mb4');
 
-// Conexão com o Banco de Dados
+// Conexão PDO
 try {
-    $pdo = new PDO(
-        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
-        DB_USER,
-        DB_PASS,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false
-        ]
-    );
-} catch(PDOException $e) {
+    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ];
+    
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    
+} catch (PDOException $e) {
     die("Erro de conexão: " . $e->getMessage());
 }
 
-// Timezone
-date_default_timezone_set('America/Sao_Paulo');
+// Chave de criptografia para settings
+define('ENCRYPTION_KEY', md5(__DIR__));
 
-// Carregar configurações do banco de dados
-require_once __DIR__ . '/../includes/settings.php';
-defineFromSettings();
-?>
+// Error reporting (desabilitar em produção)
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Não mostrar erros na tela
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/php-errors.log');

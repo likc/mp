@@ -118,7 +118,7 @@ include 'includes/header.php';
     <div style="text-align: center; margin-top: 20px;">
         <p style="color: #666;">
             Já tem uma conta? 
-            <a href="/login.php" style="color: var(--primary-green); font-weight: 600;">
+            <a href="login.php" style="color: var(--primary-green); font-weight: 600;">
                 Faça login aqui
             </a>
         </p>

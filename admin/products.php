@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_product'])) {
         setFlashMessage('Produto salvo com sucesso!', 'success');
     } catch (Exception $e) {
         $pdo->rollBack();
-        setFlashMessage('Erro ao salvar produto.', 'error');
+        setFlashMessage('Erro Real: ' . $e->getMessage(), 'error');
         logError('Erro ao salvar produto: ' . $e->getMessage());
     }
     

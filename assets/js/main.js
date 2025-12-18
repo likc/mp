@@ -268,7 +268,7 @@ function confirmDelete(message = 'Tem certeza que deseja excluir?') {
 
 // Formatar preço
 function formatPrice(value) {
-    return 'R$ ' + parseFloat(value).toFixed(2).replace('.', ',');
+    return '¥ ' + parseFloat(value).toFixed(2).replace('.', ',');
 }
 
 // CEP lookup (opcional - integração com API)

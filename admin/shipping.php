@@ -175,7 +175,7 @@ $stats['total_shipping_revenue'] = $pdo->query("SELECT SUM(shipping_cost) FROM o
                             
                             <!-- Valor Padrão do Frete -->
                             <div class="form-group">
-                                <label>Valor Padrão do Frete (R$) *</label>
+                                <label>Valor Padrão do Frete (¥) *</label>
                                 <input type="number" name="default_shipping_cost" 
                                        value="<?php echo $config['default_shipping_cost']; ?>"
                                        min="0" step="0.01" required
@@ -213,13 +213,13 @@ $stats['total_shipping_revenue'] = $pdo->query("SELECT SUM(shipping_cost) FROM o
                                     </p>
                                     
                                     <div class="form-group">
-                                        <label>💰 Valor Mínimo do Pedido (R$)</label>
+                                        <label>💰 Valor Mínimo do Pedido (¥)</label>
                                         <input type="number" name="free_shipping_min_value" 
                                                value="<?php echo $config['free_shipping_min_value']; ?>"
                                                min="0" step="0.01"
                                                placeholder="200.00">
                                         <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                                            Ex: Frete grátis acima de R$ 200,00 (0 = desabilitar esta condição)
+                                            Ex: Frete grátis acima de ¥ 200,00 (0 = desabilitar esta condição)
                                         </p>
                                     </div>
                                     
@@ -270,7 +270,7 @@ $stats['total_shipping_revenue'] = $pdo->query("SELECT SUM(shipping_cost) FROM o
                             <div class="preview-example">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div>
-                                        <strong>Carrinho: R$ 150,00</strong><br>
+                                        <strong>Carrinho: ¥ 150,00</strong><br>
                                         <small style="color: #666;">2 produtos</small>
                                     </div>
                                     <div style="text-align: right;">
@@ -304,7 +304,7 @@ $stats['total_shipping_revenue'] = $pdo->query("SELECT SUM(shipping_cost) FROM o
                                     <div class="preview-example">
                                         <div style="display: flex; justify-content: space-between; align-items: center;">
                                             <div>
-                                                <strong>Carrinho: R$ 150,00</strong><br>
+                                                <strong>Carrinho: ¥ 150,00</strong><br>
                                                 <small style="color: #666;"><?php echo $config['free_shipping_min_quantity']; ?> produtos</small>
                                             </div>
                                             <div style="text-align: right;">
@@ -328,7 +328,7 @@ $stats['total_shipping_revenue'] = $pdo->query("SELECT SUM(shipping_cost) FROM o
                                     <strong>💡 No Carrinho:</strong><br>
                                     <small style="color: #666;">
                                         <?php if ($config['free_shipping_min_value'] > 0): ?>
-                                            "Faltam apenas R$ XX,XX para ganhar frete grátis!"
+                                            "Faltam apenas ¥ XX,XX para ganhar frete grátis!"
                                         <?php endif; ?>
                                         <?php if ($config['free_shipping_min_value'] > 0 && $config['free_shipping_min_quantity'] > 0): ?>
                                             <br>ou<br>
@@ -344,7 +344,7 @@ $stats['total_shipping_revenue'] = $pdo->query("SELECT SUM(shipping_cost) FROM o
                                 <strong>🏠 No Header:</strong><br>
                                 <small style="color: #666;">
                                     <?php if ($config['free_shipping_enabled']): ?>
-                                        "⚽ FRETE GRÁTIS acima de R$ <?php echo number_format($config['free_shipping_min_value'], 0, ',', '.'); ?> ou em <?php echo $config['free_shipping_min_quantity']; ?>+ produtos"
+                                        "⚽ FRETE GRÁTIS acima de ¥ <?php echo number_format($config['free_shipping_min_value'], 0, ',', '.'); ?> ou em <?php echo $config['free_shipping_min_quantity']; ?>+ produtos"
                                     <?php else: ?>
                                         "⚽ Entrega rápida em todo o Brasil"
                                     <?php endif; ?>

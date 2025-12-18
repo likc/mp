@@ -323,7 +323,7 @@ $stats['used_coupons'] = $pdo->query("SELECT COUNT(DISTINCT coupon_code) FROM or
                         <label>Tipo de Desconto *</label>
                         <select name="discount_type" id="discount_type" required onchange="updateDiscountLabel()">
                             <option value="percentage">Percentual (%)</option>
-                            <option value="fixed">Valor Fixo (R$)</option>
+                            <option value="fixed">Valor Fixo (¥)</option>
                         </select>
                     </div>
                     
@@ -335,7 +335,7 @@ $stats['used_coupons'] = $pdo->query("SELECT COUNT(DISTINCT coupon_code) FROM or
                 </div>
                 
                 <div class="form-group">
-                    <label>Valor Mínimo do Pedido (R$)</label>
+                    <label>Valor Mínimo do Pedido (¥)</label>
                     <input type="number" name="min_order_value" id="min_order_value" 
                            min="0" step="0.01" value="0" placeholder="0.00">
                     <p style="font-size: 12px; color: #666; margin-top: 5px;">
@@ -441,7 +441,7 @@ $stats['used_coupons'] = $pdo->query("SELECT COUNT(DISTINCT coupon_code) FROM or
             label.textContent = 'Valor do Desconto (%) *';
             document.getElementById('discount_value').placeholder = '10';
         } else {
-            label.textContent = 'Valor do Desconto (R$) *';
+            label.textContent = 'Valor do Desconto (¥) *';
             document.getElementById('discount_value').placeholder = '50.00';
         }
     }

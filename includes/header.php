@@ -11,6 +11,44 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* Estilo para a busca no Cabeçalho (Header) */
+.header-actions .search-box form {
+    display: flex;
+    align-items: center;
+    background: #f5f5f5; /* Fundo cinza claro para destacar no branco */
+    border-radius: 50px; /* Estilo arredondado igual ao seu botão da Hero */
+    padding: 5px 15px;
+    border: 1px solid #ddd;
+}
+
+.header-actions .search-box input {
+    background: transparent;
+    border: none;
+    padding: 8px;
+    outline: none;
+    font-size: 14px;
+    width: 200px; /* Largura da barra no topo */
+}
+
+.header-actions .search-box button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Garante que o carrinho e a busca não fiquem grudados */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+</style>
+
 </head>
 <body>
     <!-- Flash Messages -->
@@ -38,7 +76,7 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
             <div class="container">
                 <div class="header-top-content">
                     <div class="header-promo">
-                        ⚽ FRETE GRÁTIS acima de R$ 200 ou em 3+ produtos
+                        ⚽ FRETE GRÁTIS acima de 3+ produtos
                     </div>
                     <div class="header-links">
                         <?php if (isLoggedIn()): ?>
@@ -75,16 +113,18 @@ if (!isset($pageTitle)) $pageTitle = 'Mantos Premium';
                     </nav>
                     
                     <div class="header-actions">
-                        <div class="search-box">
-                            <input type="text" placeholder="Buscar produtos..." id="searchInput">
-                            <button type="button">🔍</button>
-                        </div>
-                        
-                        <a href="cart.php" class="cart-button">
-                            🛒
-                            <span class="cart-count"><?php echo getCartItemCount(); ?></span>
-                        </a>
-                    </div>
+    <div class="search-box">
+        <form action="products.php" method="GET">
+            <input type="text" name="search" placeholder="Buscar produtos..." id="searchInput" required>
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+    
+    <a href="cart.php" class="cart-button">
+        🛒
+        <span class="cart-count"><?php echo getCartItemCount(); ?></span>
+    </a>
+</div>
                 </div>
             </div>
         </div>

@@ -1,136 +1,225 @@
 <?php
-require_once '../config/config.php';
-require_once '../includes/functions.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/settings.php';
 
-requireLogin();
-
-$pageTitle = 'Pagamento PayPal';
-$orderNumber = $_GET['order'] ?? '';
-
-if (empty($orderNumber)) {
-    redirect('/index.php');
+if (!isset($_SESSION['user_id'])) {
+    redirect('../login.php');
 }
 
-// Buscar pedido
-$stmt = $pdo->prepare("SELECT * FROM orders WHERE order_number = ? AND user_id = ?");
-$stmt->execute([$orderNumber, $_SESSION['user_id']]);
+$orderId = intval($_GET['order'] ?? 0);
+if ($orderId <= 0) {
+    redirect('../index.php');
+}
+
+$stmt = $pdo->prepare("SELECT o.* FROM orders o WHERE o.id = ? AND o.user_id = ?");
+$stmt->execute([$orderId, $_SESSION['user_id']]);
 $order = $stmt->fetch();
 
 if (!$order) {
-    redirect('/index.php');
+    redirect('../index.php');
 }
 
-// Processar retorno do PayPal
-if (isset($_GET['paymentId']) && isset($_GET['PayerID'])) {
-    // Aqui você deve validar o pagamento com a API do PayPal
-    // Por enquanto, apenas marcamos como pago
-    
-    $stmt = $pdo->prepare("UPDATE orders SET payment_status = 'paid', order_status = 'processing' WHERE id = ?");
-    $stmt->execute([$order['id']]);
-    
-    setFlashMessage('Pagamento realizado com sucesso via PayPal!', 'success');
-    redirect('/order-success.php?order=' . $orderNumber);
+if ($order['payment_status'] === 'paid') {
+    redirect('../order-success.php?order=' . $order['order_number']);
 }
 
-include '../includes/header.php';
+$paypalClientId = getSetting('paypal_client_id');
+$pageTitle = 'Pagamento PayPal - Mantos Premium';
 ?>
 
-<section class="section">
-    <div class="container" style="max-width: 800px;">
-        <div style="background: white; padding: 50px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-            <div style="text-align: center; margin-bottom: 40px;">
-                <div style="font-size: 60px; margin-bottom: 20px;">💙</div>
-                <h1 style="font-size: 36px; margin-bottom: 10px;">Pagamento via PayPal</h1>
-                <p style="color: #666;">Pedido #<?php echo htmlspecialchars($orderNumber); ?></p>
+<style>
+/* Reset de container para alinhar com o checkout.php */
+.checkout-wrapper {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.checkout-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+/* Coluna Principal (Esquerda) */
+.payment-section {
+    flex: 1;
+    min-width: 320px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+/* Sidebar (Direita) */
+.order-sidebar {
+    width: 380px;
+}
+
+@media (max-width: 992px) {
+    .order-sidebar { width: 100%; order: -1; }
+}
+
+.summary-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+}
+
+.summary-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    color: var(--primary-green);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #f1f1f1;
+    font-weight: bold;
+    font-size: 20px;
+    color: var(--primary-green);
+}
+
+.paypal-box {
+    margin: 30px 0;
+    padding: 20px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.security-tag {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+</style>
+
+<div class="checkout-wrapper">
+    <div class="checkout-grid">
+        
+        <div class="payment-section">
+            <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: #333;">FINALIZAR PAGAMENTO</h2>
+            <p style="color: #666;">Clique no botão abaixo para pagar via PayPal ou Cartão de Crédito.</p>
+            
+            <div class="paypal-box">
+                <div id="paypal-button-container"></div>
             </div>
+
+            <div class="security-tag">🔒 AMBIENTE 100% SEGURO</div>
             
-            <!-- Resumo do Pedido -->
-            <div style="background: #f9f9f9; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
-                <h3 style="margin-bottom: 20px;">Resumo do Pedido</h3>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Subtotal:</span>
-                    <strong><?php echo formatPrice($order['subtotal']); ?></strong>
-                </div>
-                <?php if ($order['discount'] > 0): ?>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--primary-green);">
-                        <span>Desconto:</span>
-                        <strong>-<?php echo formatPrice($order['discount']); ?></strong>
-                    </div>
-                <?php endif; ?>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                    <span>Frete:</span>
-                    <strong><?php echo $order['shipping_cost'] > 0 ? formatPrice($order['shipping_cost']) : 'GRÁTIS'; ?></strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; padding-top: 15px; border-top: 2px solid var(--border); font-size: 20px;">
-                    <span><strong>Total:</strong></span>
-                    <strong style="color: var(--primary-green);"><?php echo formatPrice($order['total']); ?></strong>
-                </div>
-            </div>
-            
-            <!-- Instruções PayPal -->
-            <div style="background: #E8F4F8; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
-                <h3 style="color: #0070BA; margin-bottom: 15px;">📌 Como pagar com PayPal</h3>
-                <ol style="color: #666; line-height: 2;">
-                    <li>Clique no botão "Pagar com PayPal" abaixo</li>
-                    <li>Você será redirecionado para o site seguro do PayPal</li>
-                    <li>Faça login na sua conta PayPal ou pague como visitante</li>
-                    <li>Confirme o pagamento</li>
-                    <li>Você será redirecionado de volta para confirmação</li>
-                </ol>
-            </div>
-            
-            <!-- Botão PayPal -->
-            <div id="paypal-button-container" style="margin-bottom: 30px;"></div>
-            
-            <!-- Informações de Segurança -->
-            <div style="text-align: center; color: #666; font-size: 14px;">
-                <p>🔒 Pagamento 100% seguro processado pelo PayPal</p>
-                <p style="margin-top: 10px;">Suas informações financeiras estão protegidas</p>
-            </div>
-            
-            <!-- Link para voltar -->
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="checkout.php" style="color: var(--text-light); text-decoration: none;">
-                    ← Escolher outra forma de pagamento
+            <p style="margin-top: 30px;">
+                <a href="../cart.php" style="text-decoration: none; color: #888; font-size: 14px;">
+                    ← Voltar para o carrinho
                 </a>
+            </p>
+        </div>
+
+        <div class="order-sidebar">
+            <div class="summary-card">
+                <h3 class="summary-title">Resumo do Pedido</h3>
+                
+                <div class="summary-item">
+                    <span>Nº do Pedido:</span>
+                    <strong>#<?php echo $order['order_number']; ?></strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Subtotal:</span>
+                    <span><?php echo formatPrice($order['subtotal']); ?></span>
+                </div>
+
+                <div class="summary-item">
+                    <span>Frete:</span>
+                    <span><?php echo $order['shipping_cost'] > 0 ? formatPrice($order['shipping_cost']) : 'Grátis'; ?></span>
+                </div>
+
+                <?php if ($order['discount'] > 0): ?>
+                <div class="summary-item" style="color: #d32f2f;">
+                    <span>Desconto:</span>
+                    <span>-<?php echo formatPrice($order['discount']); ?></span>
+                </div>
+                <?php endif; ?>
+
+                <div class="summary-total">
+                    <span>Total:</span>
+                    <span><?php echo formatPrice($order['total']); ?></span>
+                </div>
             </div>
         </div>
-    </div>
-</section>
 
-<!-- SDK do PayPal -->
-<script src="https://www.paypal.com/sdk/js?client-id=<?php echo PAYPAL_CLIENT_ID; ?>&currency=BRL"></script>
+    </div>
+</div>
+
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo $paypalClientId; ?>&currency=JPY&locale=ja_JP"></script>
 
 <script>
 paypal.Buttons({
+    style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'paypal' },
     createOrder: function(data, actions) {
         return actions.order.create({
             purchase_units: [{
-                description: 'Pedido #<?php echo $orderNumber; ?> - Mantos Premium',
+                reference_id: '<?php echo $order['order_number']; ?>',
                 amount: {
-                    currency_code: 'BRL',
-                    value: '<?php echo number_format($order['total'], 2, '.', ''); ?>'
+                    currency_code: 'JPY',
+                    value: '<?php echo number_format($order['total'], 0, '.', ''); ?>'
                 }
             }]
         });
     },
     onApprove: function(data, actions) {
         return actions.order.capture().then(function(details) {
-            // Pagamento aprovado - redirecionar
-            window.location.href = '/payment/paypal.php?order=<?php echo $orderNumber; ?>&paymentId=' + data.orderID + '&PayerID=' + data.payerID;
+            document.querySelector('.payment-section').innerHTML = `
+                <div style="padding: 50px 0;">
+                    <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #2d7a4a; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                    <h3>Validando Pagamento...</h3>
+                    <p>Aguarde um instante.</p>
+                </div>
+                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+            `;
+            
+            fetch('process-paypal.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: <?php echo $orderId; ?>,
+                    paypal_order_id: data.orderID,
+                    payer: details.payer,
+                    payment_details: details
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '../order-success.php?order=<?php echo $order['order_number']; ?>';
+                } else {
+                    alert('Erro: ' + data.message);
+                    location.reload();
+                }
+            });
         });
-    },
-    onError: function(err) {
-        alert('Erro ao processar pagamento. Por favor, tente novamente.');
-        console.error(err);
     }
 }).render('#paypal-button-container');
 </script>
-
-<style>
-#paypal-button-container {
-    min-height: 150px;
-}
-</style>
-
-<?php include '../includes/footer.php'; ?>

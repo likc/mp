@@ -94,7 +94,7 @@ include 'includes/header.php';
         <div class="form-group">
             <label for="phone">Telefone</label>
             <input type="tel" id="phone" name="phone" 
-                   placeholder="(11) 98765-4321"
+                   placeholder="(090) 1234-5678"
                    value="<?php echo $_POST['phone'] ?? ''; ?>">
         </div>
         

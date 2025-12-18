@@ -4,6 +4,14 @@ require_once 'includes/functions.php';
 
 $pageTitle = 'Mantos Premium - Camisas de Futebol';
 
+// --- ADICIONADO: Buscar times ativos ---
+$teams = $pdo->query("
+    SELECT * FROM teams 
+    WHERE active = 1 
+    ORDER BY display_order, name 
+    LIMIT 12
+")->fetchAll();
+
 // Buscar produtos em destaque
 $featuredProducts = $pdo->query("
     SELECT * FROM products 
@@ -198,12 +206,12 @@ include 'includes/header.php';
 }
 
 .product-badge.featured {
-    background: var(--gold);
+	background: #fca903;
 }
 
 .product-badge.new {
-    background: #FF6B6B;
-    color: white;
+    background: #3cdb1d;
+    color: black;
 }
 
 .product-info {
@@ -378,6 +386,51 @@ include 'includes/header.php';
         gap: 20px;
     }
 }
+/* TIMES SECTION */
+.teams-section {
+    background: #f9f9f9;
+    padding: 60px 20px;
+    margin: 0;
+}
+
+.teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.team-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.team-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.team-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.team-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text);
+}
 </style>
 
 <!-- Hero Section -->
@@ -397,6 +450,38 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
+</div> 
+
+<?php if (!empty($teams)): ?>
+<div class="teams-section">
+    <div class="section-header">
+        <h2 class="section-title">⚽ Times</h2>
+        <p class="section-subtitle">Escolha seu time favorito</p>
+    </div>
+    
+    <div class="teams-grid">
+        <?php foreach ($teams as $team): ?>
+        <div class="team-card" onclick="window.location.href='products.php?team=<?php echo urlencode($team['name']); ?>'">
+            <?php if (!empty($team['logo'])): ?>
+                <img src="<?php echo htmlspecialchars($team['logo']); ?>" 
+                     alt="<?php echo htmlspecialchars($team['name']); ?>"
+                     class="team-logo"
+                     loading="lazy">
+            <?php else: ?>
+                <div class="team-logo" style="display: flex; align-items: center; justify-content: center; font-size: 64px;">
+                    ⚽
+                </div>
+            <?php endif; ?>
+            
+            <div class="team-name">
+                <?php echo htmlspecialchars($team['name']); ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 
 <div class="main-container">
     <!-- Produtos em Destaque -->
@@ -422,7 +507,7 @@ include 'includes/header.php';
                     </div>
                 <?php endif; ?>
                 
-                <div class="product-badge featured">⭐ Destaque</div>
+                <div class="product-badge featured">⭐ DESTAQUE</div>
             </div>
             
             <div class="product-info">
@@ -491,7 +576,7 @@ include 'includes/header.php';
                     </div>
                 <?php endif; ?>
                 
-                <div class="product-badge new">🆕 Novo</div>
+                <div class="product-badge new">NOVO</div>
             </div>
             
             <div class="product-info">

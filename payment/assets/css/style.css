@@ -1,0 +1,145 @@
+/* Variáveis Globais - Mantendo o padrão da Index */
+:root {
+    --primary-green: #2d7a4a;
+    --dark-green: #1e5332;
+    --gold: #FFD700;
+    --text: #333333;
+    --text-light: #666666;
+    --bg-light: #f9f9f9;
+    --white: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+
+/* Container de Pagamento */
+.payment-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.payment-card {
+    background: var(--white);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+    border-top: 5px solid var(--primary-green);
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.payment-logo {
+    font-size: 60px;
+    margin-bottom: 15px;
+}
+
+.payment-title {
+    font-family: 'Bebas Neue', sans-serif; /* Se você usa na index, mantenha aqui */
+    font-size: 32px;
+    letter-spacing: 1px;
+    color: var(--primary-green);
+    margin-bottom: 10px;
+}
+
+/* Resumo do Pedido */
+.order-info {
+    background: #fcfcfc;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid #eee;
+}
+
+.order-info h3 {
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 2px solid var(--bg-light);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.order-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.order-row:last-child {
+    border-bottom: none;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--primary-green);
+    padding-top: 15px;
+    margin-top: 10px;
+    border-top: 2px solid #eee;
+}
+
+/* Feedback Visual */
+.security-info {
+    background: #e8f5e9;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-green);
+    font-size: 14px;
+    margin-top: 20px;
+    color: var(--dark-green);
+}
+
+.cancel-btn {
+    display: block;
+    text-align: center;
+    padding: 15px;
+    background: #f0f0f0;
+    color: var(--text-light);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-top: 25px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.cancel-btn:hover {
+    background: #e5e5e5;
+    color: var(--text);
+}
+
+/* Loading Spinner */
+.loading {
+    text-align: center;
+    padding: 40px;
+}
+
+.spinner {
+    border: 4px solid rgba(0,0,0,0.1);
+    border-top: 4px solid var(--primary-green);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+    .payment-card {
+        padding: 20px;
+    }
+    .payment-title {
+        font-size: 24px;
+    }
+}
